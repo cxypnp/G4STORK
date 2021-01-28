@@ -9,7 +9,7 @@ Source code for StorkRunAction class.
 
 */
 
-
+//Modified by Chengxi Yang, File permission 666->777
 // Include header file
 #include "StorkRunAction.hh"
 
@@ -596,7 +596,7 @@ void StorkRunAction::SaveSources(G4String fname, G4int curRunID, G4double runEnd
 	G4String FDir = fname.substr(0, fname.find_last_of('/'));
 	if(!(DirectoryExists(FDir.data())))
     {
-        system( ("mkdir -p -m=666 "+FDir).c_str());
+        system( ("mkdir -p -m=777 "+FDir).c_str());
         if(DirectoryExists(FDir.data()))
         {
             G4cout << "created directory " << FDir << "\n" << G4endl;
@@ -697,7 +697,7 @@ G4bool StorkRunAction::WriteFissionData(G4String fname,
 	G4String FDir = fname.substr(0, fname.find_last_of('/'));
 	if(!(DirectoryExists(FDir.data())))
     {
-        system( ("mkdir -p -m=666 "+FDir).c_str());
+        system( ("mkdir -p -m=777 "+FDir).c_str());
         if(DirectoryExists(FDir.data()))
         {
             G4cout << "created directory " << FDir << "\n" << G4endl;

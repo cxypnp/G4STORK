@@ -9,6 +9,7 @@ Source code file for StorkNeutronSD class.
 
 */
 
+//Modified by Chengxi Yang. ALWAYS Save the Delayed Neutrons to Delayed instead of Survivors
 
 // Include header file
 
@@ -182,8 +183,11 @@ G4bool StorkNeutronSD::ProcessHits(G4Step *aStep, G4TouchableHistory*)
 	// any secondaries (stops simulation from running forever)
 	// Save the neutron as a survivor
 	if(hitProcess == "StorkTimeStepLimiter")
-	{
-		SaveSurvivors(aTrack);
+	{   
+        if(aTrack->GetGlobalTime() > runEnd)
+            SaveDelayed(aTrack);
+        else
+		    SaveSurvivors(aTrack);
 
 		aTrack->SetTrackStatus(fKillTrackAndSecondaries);
 
@@ -469,10 +473,9 @@ G4bool StorkNeutronSD::ProcessHits(G4Step *aStep, G4TouchableHistory*)
 void StorkNeutronSD::SaveSurvivors(const G4Track *aTrack)
 {
     // Get size of last step
-    if(aTrack->GetStep())
+    G4double previousStepSize = aTrack->GetStep()->GetStepLength();
+    if(previousStepSize)
     {
-        G4double previousStepSize = aTrack->GetStep()->GetStepLength();
-
         // Get the number of interaction length left data
         G4double *n_lambda = procMan->
                                 GetNumberOfInteractionLengthsLeft(previousStepSize);
@@ -487,13 +490,8 @@ void StorkNeutronSD::SaveSurvivors(const G4Track *aTrack)
     }
     else
     {
-        // Create the survivor record
-        StorkNeutronData aSurvivor(runEnd, aTrack->GetLocalTime(),
-                           aTrack->GetPosition(), aTrack->GetMomentum(),
-                           -1.0, -1.0, -1.0, -1.0, 1.0);
-
-        // Add the survivor to the list
-        survivors.push_back(aSurvivor);
+        G4cerr << "*** ERROR in SaveSurvivors: previousStepSize"
+                   << previousStepSize << " == " << 0 << G4endl;
     }
 }
 
