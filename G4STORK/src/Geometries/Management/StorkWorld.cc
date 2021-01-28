@@ -9,7 +9,7 @@ Source code for the StorkWorld class.
 
 */
 
-
+// Added ADS, Chengxi Yang 2020.7.22
 // Include header file
 
 #include "StorkWorld.hh"
@@ -26,8 +26,9 @@ Source code for the StorkWorld class.
 #include "Q_ZED2Constructor.hh"
 //#include "DebugConstructor.hh"
 #include "TestConstructor.hh"
-
-
+//Chengxi Yang
+#include "ADSConstructor.hh"
+//end
 // Overloaded Constructor
 StorkWorld::StorkWorld(const StorkParseInput* infile)
 : worldPhysical(0), theWorld(0)
@@ -44,7 +45,9 @@ StorkWorld::StorkWorld(const StorkParseInput* infile)
     AddWorld("Q_ZED2", new Q_ZED2Constructor());
 //    AddWorld("Debug", new DebugConstructor());
     AddWorld("Test", new TestConstructor());
-
+    //Chengxi Yang
+    AddWorld("ADS",new ADSConstructor());
+    //end
     // Copy user inputs
     inFile = infile;
     worldName = infile->GetWorld();
@@ -65,6 +68,9 @@ StorkWorld::StorkWorld()
     AddWorld("Q_ZED2", new Q_ZED2Constructor());
 //    AddWorld("Debug", new DebugConstructor());
     AddWorld("Test", new TestConstructor());
+    //Chengxi Yang
+    AddWorld("ADS",new ADSConstructor());
+    //end
 }
 
 // Destructor
