@@ -9,6 +9,8 @@ Source code for StorkHPNeutronBuilder class.
 
 */
 
+//Elastic Min Energy 0eV-> 4eV Chengxi Yang
+
 
 // Include header file
 #include "StorkHPNeutronBuilder.hh"
@@ -90,7 +92,7 @@ void StorkHPNeutronBuilder::Build(G4HadronElasticProcess *aP)
 
 
     // Set the limits of the model
-    nElasticModel->SetMinEnergy(0.0*eV);
+    nElasticModel->SetMinEnergy(4.0*eV);
     nElasticModel->SetMaxEnergy(theMax);
 
     // Register both

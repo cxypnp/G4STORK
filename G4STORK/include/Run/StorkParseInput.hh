@@ -14,6 +14,9 @@ output stream.
 
 */
 
+//Modified by Chengxi Yang 2020.07.22
+//Added user geometry ADS
+//Added variable: beam num, initial momentum direction and corresponding methods.
 #ifndef StorkPARSEINPUT_H
 #define StorkPARSEINPUT_H
 
@@ -88,6 +91,15 @@ class StorkParseInput
 		G4ThreeVector GetInitialSourcePos() const { return initialSourcePos; }
 		void SetInitialSourcePos(G4ThreeVector initSourcePosition) { initialSourcePos=initSourcePosition; }
 
+		//Chengxi Yang
+		G4ThreeVector GetInitialSourceDir() const { return initialSourceDir;}
+		void SetInitialSourceDir(G4ThreeVector initSourceDirection) { initialSourceDir=initSourceDirection; }
+		G4int beamPrimaries;
+		G4int GetBeamPrimaries() const {return beamPrimaries;}
+		void SetBeamPrimaries(G4int beamNum) {beamPrimaries=beamNum;}
+		G4bool useBeam;
+		G4bool GetBeam() const {return useBeam;}
+		
 		G4String GetUniformDistributionShape() const { return uniDisShape; }
 		void SetUniformDistributionShape(G4String uniformDisShape) { uniDisShape=uniformDisShape; }
 
@@ -338,6 +350,9 @@ class StorkParseInput
 		// Initial neutron start position
 		G4ThreeVector initialSourcePos;
 
+		//Chengxi Yang
+		G4ThreeVector initialSourceDir;
+		
 		// Shannon entropy mesh and convergence limits
 		G4int numSteps[3];
 		G4double limitSE;

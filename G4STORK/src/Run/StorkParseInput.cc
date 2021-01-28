@@ -9,6 +9,10 @@ Source code file for StorkParseInput class.
 
 */
 
+//Modified by Chengxi Yang 2020.07.22
+//Added user geometry ADS
+//Added beam num, initial momentum direction
+//Modified the file permission from 666 to 777
 
 // Include header file
 
@@ -30,6 +34,7 @@ StorkParseInput::StorkParseInput(G4bool master)
 
 	initEnergy = 1.*MeV;
 	initialSourcePos.set(0.,0.,0.);
+	initialSourceDir.set(0.,0.,0.);	//Chengxi Yang
 	randomSeed = 0;
 	saveSources = 0;
 	numberOfEvents =0;
@@ -75,6 +80,8 @@ StorkParseInput::StorkParseInput(G4bool master)
     MCNPEnvCheck *runLikeMCNP;
     runLikeMCNP->SetFlag(false);
 
+	useBeam= false;	//Chengxi Yang
+	
 	// Set null file names
 	logFile = "";
 	sourceFile = "";
@@ -417,6 +424,10 @@ G4bool StorkParseInput::ReadInputFile(G4String filename)
 			{
 
 			}
+			else if (keyWord=="ADS")
+			{
+				//Chengxi Yang
+			}
             else if(userWorlds.find(keyWord) != userWorlds.end())
             {
                 StorkMatPropChangeVector defaults = userWorlds[keyWord];
@@ -560,6 +571,13 @@ G4bool StorkParseInput::ReadInputFile(G4String filename)
 		else if(keyWord=="INITIAL_SOURCE_POS")
 		{
 			infile >> initialSourcePos[0] >> initialSourcePos[1] >> initialSourcePos[2];
+		}
+		else if(keyWord=="INITIAL_SOURCE_DIR")
+		{
+			//Set the momentum direction of initial source
+			//Chengxi Yang
+			infile >> initialSourceDir[0] >> initialSourceDir[1] >> initialSourceDir[2];
+			initialSourceDir=initialSourceDir/initialSourceDir.getR();
 		}
 		else if(keyWord=="INITIAL_FISSION_DATA_FILE")
 		{
@@ -746,7 +764,12 @@ G4bool StorkParseInput::ReadInputFile(G4String filename)
 			// Add the property to the world property map
 			theWorldProps[mpPair] = newValue*theMPMan->GetUnits(mpPair.second);
 		}
-
+		else if(keyWord=="BEAM")
+		{
+			//Chengxi Yang
+			useBeam= true;
+			infile >> beamPrimaries;
+		}
         // Error if unknown keyword
 		else
 		{
@@ -804,7 +827,7 @@ G4bool StorkParseInput::ReadInputFile(G4String filename)
 
         if(!(DirectoryExists((logDir).c_str())))
         {
-            system( ("mkdir -p -m=666 "+logDir).c_str());
+            system( ("mkdir -p -m=777 "+logDir).c_str());
             if(DirectoryExists((logDir).c_str()))
             {
                 G4cout << "created directory " << logDir << "\n" << G4endl;
@@ -827,7 +850,8 @@ G4bool StorkParseInput::ReadInputFile(G4String filename)
     		sourceFile = logDir.substr(0,pos) + "/SourceFiles/";
             if(!(DirectoryExists((sourceFile).c_str())))
             {
-                system( ("mkdir -p -m=666 "+sourceFile).c_str());
+				//Chengxi Yang
+                system( ("mkdir -p -m=777 "+sourceFile).c_str());
                 if(DirectoryExists((sourceFile).c_str()))
                 {
                     G4cout << "created directory " << sourceFile << "\n" << G4endl;
@@ -849,7 +873,8 @@ G4bool StorkParseInput::ReadInputFile(G4String filename)
     		fissionDataFile = logDir.substr(0,pos) + "/FissionFiles/";
             if(!(DirectoryExists((fissionDataFile).c_str())))
             {
-                system( ("mkdir -p -m=666 "+fissionDataFile).c_str());
+				//Chengxi Yang
+                system( ("mkdir -p -m=777 "+fissionDataFile).c_str());
                 if(DirectoryExists((fissionDataFile).c_str()))
                 {
                     G4cout << "created directory " << fissionDataFile << "\n" << G4endl;

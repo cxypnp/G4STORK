@@ -30,6 +30,9 @@
 // 070523 bug fix for G4FPE_DEBUG on by A. Howard ( and T. Koi)
 // 080319 Compilation warnings - gcc-4.3.0 fix by T. Koi
 //
+
+//Elastic Min Energy 0eV-> 4eV Chengxi Yang
+
 #include "StorkNeutronHPElastic.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4NeutronHPElasticFS.hh"
@@ -61,7 +64,7 @@
        while(!(*theElastic[i]).Register(theFS)) ;
     }
     delete theFS;
-    SetMinEnergy(0.*eV);
+    SetMinEnergy(4.*eV);
     SetMaxEnergy(20.*MeV);
   }
 
