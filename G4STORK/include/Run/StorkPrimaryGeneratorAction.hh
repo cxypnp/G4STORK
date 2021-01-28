@@ -15,6 +15,7 @@ load the initial distribution from a file.
 
 */
 
+// Added Beam, Chengxi Yang 2020.8.10
 #ifndef StorkPRIMARYGENERATORACTION_H
 #define StorkPRIMARYGENERATORACTION_H
 
@@ -115,6 +116,8 @@ class StorkPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
         // Produce uniformly distributed positions in the world volume
         void UniformPosition(StorkNeutronData* input);
 
+        //Chengxi Yang
+        void InitializeBeam();
 
 
 
@@ -137,6 +140,7 @@ class StorkPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
         G4double initEnergy;    // Initial energy of source neutrons
         G4ThreeVector origin;
+        G4ThreeVector direction;//Chengxi Yang
         G4bool uniformDisWithDim;
         StorkSixVector<G4double> uniDisDim;
         G4String shape; // The shape to be used for the Uniform Distribution
@@ -180,7 +184,8 @@ class StorkPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
         G4double adjustmentFactor;
 
-
+        G4bool useBeam;//Chengxi Yang
+        G4int beamPrimaries;
 
 #ifdef G4TIMEPG
         G4Timer genTimer;
