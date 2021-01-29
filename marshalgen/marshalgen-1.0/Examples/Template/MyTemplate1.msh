@@ -1,0 +1,43 @@
+%{
+#include "MyTemplate1.h"
+
+%}
+
+template <class T> marshaling class MarshaledT (T* param)  {
+
+  T data;
+    //FIELDMARSHAL:
+    {
+	if(0){}
+	else if((MSH_IsSameClass<T,int>) ){
+		memcpy($$, &Shadowed_param->data, sizeof(int));
+	}
+	else if( true ){
+		memcpy($$, &Shadowed_param->data, sizeof(double));
+	}
+
+    }
+    //FIELDUNMARSHAL:
+    {
+	if(0){}
+	else if((MSH_IsSameClass<T,int>) ){
+		memcpy(&Shadowed_param->data, $$, sizeof(int));
+	}
+	else if( true ){
+		memcpy(&Shadowed_param->data, $$, sizeof(double));
+	}
+
+    }
+    //FIELDSIZE:
+    {
+	if(0){}
+	else if((MSH_IsSameClass<T,int>) ){
+		$SIZE = sizeof(int);
+	}
+	else if( true ){
+		$SIZE = sizeof(double);
+	}
+
+    }
+}
+

@@ -1,0 +1,42 @@
+%{
+#include "Bar.h"
+
+%}
+
+ marshaling class MarshaledBar (Bar* param) {
+
+    double *y;
+    //FIELDMARSHAL:
+    {
+	memcpy($$, Shadowed_param->y, sizeof(double ));
+    }
+    //FIELDUNMARSHAL:
+    {
+	Shadowed_param->y = (double *)malloc(sizeof(double ));
+	memcpy(Shadowed_param->y, $$, sizeof(double ));
+
+    }
+    //FIELDSIZE:
+    {
+      $SIZE = sizeof( double );
+    }
+
+    Bar *b;
+    //FIELDMARSHAL:
+    {
+	MarshaledBar  var(Shadowed_param->b);
+	memcpy($$, var.getBuffer(), var.getBufferSize());
+    }
+    //FIELDUNMARSHAL:
+    {
+	MarshaledBar  var($$, 'u');
+	Shadowed_param->b = var.unmarshal();
+
+    }
+    //FIELDSIZE:
+    {
+      MarshaledBar  var(Shadowed_param->b );
+      $SIZE = var.getBufferSize();
+    }
+}
+

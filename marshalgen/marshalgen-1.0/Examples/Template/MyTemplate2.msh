@@ -1,0 +1,81 @@
+%{
+#include "MyTemplate2.h"
+
+%}
+
+ marshaling class MarshaledMyTemplate2 (MyTemplate2* param) {
+
+  T data;
+    //FIELDMARSHAL:
+    {
+	if(0){}
+	else if((MSH_IsSameClass<T,int>) ){
+		memcpy($$, &Shadowed_param->data, sizeof(int));
+	}
+	else if( true ){
+		MarshaledBar2 var(&Shadowed_param->data);
+		memcpy($$, var.getBuffer(), var.getBufferSize());
+	}
+
+    }
+    //FIELDUNMARSHAL:
+    {
+	if(0){}
+	else if((MSH_IsSameClass<T,int>) ){
+		memcpy(&Shadowed_param->data, $$, sizeof(int));
+	}
+	else if( true ){
+		MarshaledBar2 var($$, 'u');
+		var.unmarshalTo(&Shadowed_param->data);
+	}
+
+    }
+    //FIELDSIZE:
+    {
+	if(0){}
+	else if((MSH_IsSameClass<T,int>) ){
+		$SIZE = sizeof(int);
+	}
+	else if( true ){
+		MarshaledBar2 var(&Shadowed_param->data);
+		$SIZE = var.getBufferSize();
+	}
+
+    }
+}
+
+ marshaling class MarshaledBar2 (Bar2* param) {
+
+    double x;
+    //FIELDMARSHAL:
+    {
+	memcpy($$, &Shadowed_param->x, sizeof(double));
+    }
+    //FIELDUNMARSHAL:
+    {
+	memcpy(&Shadowed_param->x, $$, sizeof(double));
+
+    }
+    //FIELDSIZE:
+    {
+	$SIZE = sizeof(double);
+
+    }
+
+    double y;
+    //FIELDMARSHAL:
+    {
+	memcpy($$, &Shadowed_param->y, sizeof(double));
+    }
+    //FIELDUNMARSHAL:
+    {
+	memcpy(&Shadowed_param->y, $$, sizeof(double));
+
+    }
+    //FIELDSIZE:
+    {
+	$SIZE = sizeof(double);
+
+    }
+}
+

@@ -339,6 +339,7 @@ void StorkPrimaryGeneratorAction::UpdateSourceDistributions(
     // Only add the delayed neutrons after the source has converged
     if ((runMan->GetSourceConvergence() || useBeam) && !precursorDelayed)
     {
+        G4cerr << "fcuk"<<endl;
         // Add the delayed neutrons to the end of the delayed neutron list
         dNeutrons.insert(dNeutrons.end(), dnSource->begin(), dnSource->end());
     }
