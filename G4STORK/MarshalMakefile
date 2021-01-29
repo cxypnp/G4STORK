@@ -1,4 +1,4 @@
-MARSHALGEN_PATH = /usr/local/marshalgen-1.0
+MARSHALGEN_PATH = /home/cxy/work/SummerResearch/marshalgen-1.0
 MARSHAL=$(MARSHALGEN_PATH)/marshalgen
 
 default: all
