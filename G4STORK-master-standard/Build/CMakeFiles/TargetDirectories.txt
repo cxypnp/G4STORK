@@ -1,8 +1,0 @@
-/run/media/cxy/A23AC3933AC36341/G4STORK-master-standard/Build/CMakeFiles/install/strip.dir
-/run/media/cxy/A23AC3933AC36341/G4STORK-master-standard/Build/CMakeFiles/install/local.dir
-/run/media/cxy/A23AC3933AC36341/G4STORK-master-standard/Build/CMakeFiles/edit_cache.dir
-/run/media/cxy/A23AC3933AC36341/G4STORK-master-standard/Build/CMakeFiles/G4_STORK.dir
-/run/media/cxy/A23AC3933AC36341/G4STORK-master-standard/Build/CMakeFiles/install.dir
-/run/media/cxy/A23AC3933AC36341/G4STORK-master-standard/Build/CMakeFiles/list_install_components.dir
-/run/media/cxy/A23AC3933AC36341/G4STORK-master-standard/Build/CMakeFiles/rebuild_cache.dir
-/run/media/cxy/A23AC3933AC36341/G4STORK-master-standard/Build/CMakeFiles/g4stork.dir

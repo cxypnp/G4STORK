@@ -1,2 +1,0 @@
-# Hashes of file build rules.
-b6b97349c3c3ea175fc907eb2c6ea572 CMakeFiles/G4_STORK
