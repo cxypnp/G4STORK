@@ -16,8 +16,13 @@ Source code for StorkPrimaryGeneratorAction class.
 // Added BeamGenerator, Chengxi Yang 2020.8.10
 
 // Modified Code for delayed neutrons. Always add delayed when using beam, and use the delayed neutrons from GEANT4, this modification has to be combined with the change in StorkNeutronSD.cc SaveSurvivors
+
 //From Now delayedOption==3-> use Precursors and Geant4 Fission to generate delayed
-//delayedOption==2-> use SourceFile and Geant4 Fission to generate delayed
+//         delayedOption==2-> use SourceFile and Geant4 Fission to generate delayed
+
+//ALWAYS add delayed
+
+//int(recordTime) to avoid float error
 
 // Constructor
 StorkPrimaryGeneratorAction::StorkPrimaryGeneratorAction(
@@ -336,8 +341,8 @@ void StorkPrimaryGeneratorAction::UpdateSourceDistributions(
     // Assign the new distribution to survivors
     survivors.assign(nSource->begin(), nSource->end());
 
-    // Only add the delayed neutrons after the source has converged
-    if ((runMan->GetSourceConvergence() || useBeam) && !precursorDelayed)
+    // Always add the delayed neutrons
+    if (!precursorDelayed)
     {
         // Add the delayed neutrons to the end of the delayed neutron list
         dNeutrons.insert(dNeutrons.end(), dnSource->begin(), dnSource->end());

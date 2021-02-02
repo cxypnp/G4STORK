@@ -28,11 +28,11 @@ ADSConstructor::ADSConstructor()
     // fuelTemp = 900 * kelvin;
     // fuelDensity = 3.356983 * g / cm3;
 
-    fuelTemp = 950 * kelvin;
-    fuelDensity = 3.315983 * g / cm3;
+    // fuelTemp = 950 * kelvin;
+    // fuelDensity = 3.315983 * g / cm3;
 
-    // fuelTemp = 1000 * kelvin;
-    // fuelDensity = 3.274983 * g / cm3;
+    fuelTemp = 1000 * kelvin;
+    fuelDensity = 3.274983 * g / cm3;
 
     graphiteTemp = fuelTemp;
     graphiteDensity = 1.80 * g / cm3;

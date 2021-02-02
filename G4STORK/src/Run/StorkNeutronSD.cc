@@ -184,7 +184,7 @@ G4bool StorkNeutronSD::ProcessHits(G4Step *aStep, G4TouchableHistory*)
 	// Save the neutron as a survivor
 	if(hitProcess == "StorkTimeStepLimiter")
 	{   
-        if(aTrack->GetGlobalTime() > runEnd)
+        if(aTrack->GetGlobalTime()-runEnd>=1)
             SaveDelayed(aTrack);
         else
 		    SaveSurvivors(aTrack);
