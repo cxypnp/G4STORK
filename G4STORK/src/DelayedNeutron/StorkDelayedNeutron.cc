@@ -196,7 +196,7 @@ NeutronSources StorkDelayedNeutron::GetDelayedNeutrons(G4double runEnd)
     G4double nMom;
     NeutronSources dNeutrons;
     StorkNeutronData theDelayed;
-
+    G4double precursorLoss[6]={0,0,0,0,0,0};
 
     for(G4int i=0; i<6; i++){
 
@@ -214,7 +214,7 @@ NeutronSources StorkDelayedNeutron::GetDelayedNeutrons(G4double runEnd)
                 G4ThreeVector site(fSites[R_ind].data);
 
                 //Remove a precursor.
-                Precursors[i]--;
+                precursorLoss[i]++;
 
                 //Gaussian sample for a momentum.
                 nMom = G4RandGauss::shoot(sqrt(2*mass*EnergyYields[0][i]),0.05);
@@ -235,6 +235,12 @@ NeutronSources StorkDelayedNeutron::GetDelayedNeutrons(G4double runEnd)
 
         }
     }
+
+    for (int i = 0; i < 6; i++)
+    {
+        Precursors[i]-=precursorLoss[i];
+    }
+    
     //Return the list of created delayed neutrons.
     return dNeutrons;
 }
