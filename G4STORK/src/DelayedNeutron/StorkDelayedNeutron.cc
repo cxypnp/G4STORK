@@ -5,6 +5,9 @@ Written By: Andrew Tan
 Date: August 25, 2015
 
 Last Edit:
+Chengxi Yang
+Fixed systematic error of delayed decay
+The precursor number should be subtracted after the cycle, not in the cycle
 */
 
 #include "StorkDelayedNeutron.hh"
