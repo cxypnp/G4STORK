@@ -13,18 +13,17 @@ Source code for StorkRunAction class.
 // Include header file
 #include "StorkRunAction.hh"
 
-
 // Constructor
 StorkRunAction::StorkRunAction(StorkPrimaryGeneratorAction *genPtr,
-                        const StorkParseInput *fIn)
-:genAction(genPtr)
+                               const StorkParseInput *fIn)
+    : genAction(genPtr)
 {
     // Set default and user input values
     infile = fIn;
     runDuration = fIn->GetRunDuration();
     kCalcType = fIn->GetKCalcType();
     RunThermalModel = fIn->GetRunThermalModel();
-    worldSize = G4ThreeVector(0.,0.,0.);
+    worldSize = G4ThreeVector(0., 0., 0.);
     survivorsBuffer = NULL;
     delayedBuffer = NULL;
     rndmInitializer = fIn->GetInitialSourceFile();
@@ -41,14 +40,15 @@ StorkRunAction::StorkRunAction(StorkPrimaryGeneratorAction *genPtr,
     neutronFluxCalc = fIn->GetNeutronFluxCalc();
     renormalize = fIn->GetRenormalizeAfterRun();
     saveInterval = fIn->SaveSourcesInterval();
-    primariesPerRun = fIn->GetNumberOfEvents()*fIn->GetNumberOfPrimariesPerEvent();
+    primariesPerRun = fIn->GetNumberOfEvents() * fIn->GetNumberOfPrimariesPerEvent();
     saveRundata = false;
 
     fn_index = save_index = 0;
     FluxOrigin = fIn->GetFluxOrigin();
 
     //Set up the neutron flux calcution
-    if(neutronFluxCalc){
+    if (neutronFluxCalc)
+    {
         fluxCalcShape = fIn->GetFluxCalcShape();
 
         fluxCalcRegion[0] = (fIn->GetFluxRegion())[0];
@@ -56,81 +56,77 @@ StorkRunAction::StorkRunAction(StorkPrimaryGeneratorAction *genPtr,
         fluxCalcRegion[2] = (fIn->GetFluxRegion())[2];
         fluxCalcRegion[3] = (fIn->GetFluxRegion())[3];
 
-        EnergyRange[0]=(fIn->GetEnergyRange())[0];
-        EnergyRange[1]=(fIn->GetEnergyRange())[1];
+        EnergyRange[0] = (fIn->GetEnergyRange())[0];
+        EnergyRange[1] = (fIn->GetEnergyRange())[1];
     }
 
-
-	// Set the shannon entropy mesh
-    for(G4int i=0; i<3; i++)
+    // Set the shannon entropy mesh
+    for (G4int i = 0; i < 3; i++)
     {
-    	numSpatialSteps[i] = (fIn->GetMeshSteps())[i];
-    	maxShannonEntropy *= numSpatialSteps[i];
+        numSpatialSteps[i] = (fIn->GetMeshSteps())[i];
+        maxShannonEntropy *= numSpatialSteps[i];
     }
 
     // Calculate maximum Shannon entropy
-    maxShannonEntropy = -1.0 * std::log(1.0/maxShannonEntropy) / std::log(2);
+    maxShannonEntropy = -1.0 * std::log(1.0 / maxShannonEntropy) / std::log(2);
 
     // Create the fSites and sSites arrays
     fSites = new G4int **[numSpatialSteps[0]];
     sSites = new G4int **[numSpatialSteps[0]];
 
-    for(G4int i=0; i<numSpatialSteps[0]; i++)
+    for (G4int i = 0; i < numSpatialSteps[0]; i++)
     {
         fSites[i] = new G4int *[numSpatialSteps[1]];
         sSites[i] = new G4int *[numSpatialSteps[1]];
 
-        for(G4int j=0; j<numSpatialSteps[1]; j++)
+        for (G4int j = 0; j < numSpatialSteps[1]; j++)
         {
-            fSites[i][j] = new G4int [numSpatialSteps[2]];
-            sSites[i][j] = new G4int [numSpatialSteps[2]];
+            fSites[i][j] = new G4int[numSpatialSteps[2]];
+            sSites[i][j] = new G4int[numSpatialSteps[2]];
         }
     }
 
     // Set up the output stream
-	output = infile->GetLogOutputStream();
+    output = infile->GetLogOutputStream();
 }
-
 
 // Destructor
 StorkRunAction::~StorkRunAction()
 {
     // Delete all elements of the fSites and sSites arrays
-    for(G4int i=0; i<numSpatialSteps[0]; i++)
+    for (G4int i = 0; i < numSpatialSteps[0]; i++)
     {
-        for(G4int j=0; j<numSpatialSteps[1]; j++)
+        for (G4int j = 0; j < numSpatialSteps[1]; j++)
         {
-            delete [] fSites[i][j];
-            delete [] sSites[i][j];
+            delete[] fSites[i][j];
+            delete[] sSites[i][j];
         }
 
-        delete [] fSites[i];
-        delete [] sSites[i];
+        delete[] fSites[i];
+        delete[] sSites[i];
     }
 
-    delete [] fSites;
-    delete [] sSites;
+    delete[] fSites;
+    delete[] sSites;
     fSites = NULL;
     sSites = NULL;
 
     // Delete all the elements of the survivorsBuffer and delayedBuffer
-    if(survivorsBuffer)
+    if (survivorsBuffer)
     {
-    	delete [] survivorsBuffer;
-		survivorsBuffer = NULL;
+        delete[] survivorsBuffer;
+        survivorsBuffer = NULL;
     }
-    if(delayedBuffer)
+    if (delayedBuffer)
     {
-    	delete [] delayedBuffer;
-		delayedBuffer = NULL;
+        delete[] delayedBuffer;
+        delayedBuffer = NULL;
     }
 
     // Delete array of variable property name lengths
-    delete [] nameLen;
+    delete[] nameLen;
     nameLen = NULL;
-
 }
-
 
 // BeginOfRunAction()
 // Initialize (clear and reset) containers and set random number generator seed
@@ -146,13 +142,13 @@ void StorkRunAction::BeginOfRunAction(const G4Run *aRun)
     runCalcTimer.Start();
 #endif
 
-	// Initialize random number generator from file if necessary
-	if(!rndmInitializer.empty() && aRun->GetRunID() == 0 &&
-		!infile->OverrideInitRandomSeed())
-	{
-		// Restore engine from file
-		CLHEP::HepRandom::restoreEngineStatus(rndmInitializer);
-	}
+    // Initialize random number generator from file if necessary
+    if (!rndmInitializer.empty() && aRun->GetRunID() == 0 &&
+        !infile->OverrideInitRandomSeed())
+    {
+        // Restore engine from file
+        CLHEP::HepRandom::restoreEngineStatus(rndmInitializer);
+    }
 
     // Get the number of events and initialize the run
     numEvents = aRun->GetNumberOfEventToBeProcessed();
@@ -162,26 +158,25 @@ void StorkRunAction::BeginOfRunAction(const G4Run *aRun)
     delayed.clear();
 
     // Delete and recreate the survivors buffer
-    if(survivorsBuffer)
-        delete [] survivorsBuffer;
+    if (survivorsBuffer)
+        delete[] survivorsBuffer;
     survivorsBuffer = new NeutronSources[numEvents];
 
     // Delete and recreate the delayed buffer
-    if(delayedBuffer)
-        delete [] delayedBuffer;
+    if (delayedBuffer)
+        delete[] delayedBuffer;
     delayedBuffer = new NeutronSources[numEvents];
 
     // Reset the entries of the fsites array
-    for(G4int i=0; i<numSpatialSteps[0]; i++)
+    for (G4int i = 0; i < numSpatialSteps[0]; i++)
     {
-        for(G4int j=0; j<numSpatialSteps[1]; j++)
+        for (G4int j = 0; j < numSpatialSteps[1]; j++)
         {
-            for(G4int k=0; k<numSpatialSteps[2]; k++)
+            for (G4int k = 0; k < numSpatialSteps[2]; k++)
             {
-            	fSites[i][j][k] = 0;
+                fSites[i][j][k] = 0;
                 sSites[i][j][k] = 0;
             }
-
         }
     }
 
@@ -193,29 +188,27 @@ void StorkRunAction::BeginOfRunAction(const G4Run *aRun)
 
     runID = aRun->GetRunID();
 
-
-    if(runID == 0)
+    if (runID == 0)
     {
         // Set up the appropriate unit for output
-        tUnit = 1.*ns;
+        tUnit = 1. * ns;
         G4String unit = "(ns)";
 
-        if(runDuration >= 1e9)
+        if (runDuration >= 1e9)
         {
-            tUnit = 1.*s;
+            tUnit = 1. * s;
             unit = "(s) ";
         }
-        else if(runDuration >= 1e6)
+        else if (runDuration >= 1e6)
         {
-            tUnit = 1.*ms;
+            tUnit = 1. * ms;
             unit = "(ms)";
         }
-        else if(runDuration >= 1e3)
+        else if (runDuration >= 1e3)
         {
-            tUnit = 1.*microsecond;
+            tUnit = 1. * microsecond;
             unit = "(us)";
         }
-
 
         // Write header lines
         *output << "# Number of Primaries per Run = "
@@ -223,7 +216,6 @@ void StorkRunAction::BeginOfRunAction(const G4Run *aRun)
                 << "# Number of Events per Run = "
                 << numEvents << G4endl
                 << "# " << G4endl << "# " << G4endl;
-
 
         *output << "# Run #      "
                 << " Start " << unit << "  "
@@ -237,18 +229,19 @@ void StorkRunAction::BeginOfRunAction(const G4Run *aRun)
                 << "Duration (s) "
                 << "Avg Yield    "
                 << "# of Fissions";
-        if(neutronFluxCalc){
+        if (neutronFluxCalc)
+        {
             *output << "Flux (n cm^-2 s^-1) ";
             underline = 150;
-
         }
-		else{
-        	underline = 129;
-		}
+        else
+        {
+            underline = 129;
+        }
         G4String interpName;
 
-		// Output the material properties that are being interpolated
-        for(G4int i=0; i<theMPInterpMan->GetNumberOfInterpVectors(); i++)
+        // Output the material properties that are being interpolated
+        for (G4int i = 0; i < theMPInterpMan->GetNumberOfInterpVectors(); i++)
         {
             interpName = (*theMPInterpMan)[i]->first;
 
@@ -265,11 +258,11 @@ void StorkRunAction::BeginOfRunAction(const G4Run *aRun)
         output->width(underline);
         output->fill('-');
         *output << "-" << G4endl;
-
     }
 
     //Set the saving index for fission site/energies.
-    if(saveInterval && !(runID%saveInterval)){
+    if (saveInterval && !(runID % saveInterval))
+    {
         save_index = fnSites.size();
         saveRundata = true;
     }
@@ -282,16 +275,14 @@ void StorkRunAction::BeginOfRunAction(const G4Run *aRun)
 #endif
 }
 
-
 // UpdateSourceDistributions()
 // Update the survivor and delayed neutron distributions of the
 // StorkPrimaryGeneratorAction class.
 void StorkRunAction::UpdateSourceDistributions()
 {
     // Pass suvivors and delayed neutrons to primary generator
-    genAction->UpdateSourceDistributions(&survivors,&delayed);
+    genAction->UpdateSourceDistributions(&survivors, &delayed);
 }
-
 
 // EndOfRunAction()
 // Calculate the results of the run (k_eff, k_run, Shannon entropy, etc).
@@ -308,15 +299,15 @@ void StorkRunAction::EndOfRunAction(const G4Run *aRun)
     //G4int numPrimaries = genAction->GetNumPrimaries();
 
     // Find the Shannon Entropy
-    shannonEntropy[0] = CalcShannonEntropy(fSites,totalFS);
-    shannonEntropy[1] = CalcShannonEntropy(sSites,G4int(survivors.size()));
+    shannonEntropy[0] = CalcShannonEntropy(fSites, totalFS);
+    shannonEntropy[1] = CalcShannonEntropy(sSites, G4int(survivors.size()));
 
     //Find neutron flux of specified material.
-    if(neutronFluxCalc)
+    if (neutronFluxCalc)
         neutronFlux = CalcNeutronFlux();
 
     //Find krun
-    krun = G4double(survivors.size()/G4double(primariesPerRun));
+    krun = G4double(survivors.size() / G4double(primariesPerRun));
 
     // Find the average neutron lifetime
     avgLifetime /= G4double(numNLost);
@@ -328,43 +319,42 @@ void StorkRunAction::EndOfRunAction(const G4Run *aRun)
     // Find keff
 
     // Dynamic Criticality Method
-    if(kCalcType == 0)
+    if (kCalcType == 0)
     {
         keff = G4double(numNProduced) / G4double(numNLost);
     }
     // Time Absorption Method
-    else if(kCalcType == 1)
+    else if (kCalcType == 1)
     {
-        G4double alpha = (std::log(krun))/runDuration;
-        keff = std::exp(alpha*avgLifetime);
+        G4double alpha = (std::log(krun)) / runDuration;
+        keff = std::exp(alpha * avgLifetime);
     }
     // Generational Method
-    else if(kCalcType == 2)
+    else if (kCalcType == 2)
     {
         keff = G4double(numNProduced) / G4double(numNLost);
     }
     else
     {
         G4cout << "Error: Invalid Keff calculation method selected!" << G4endl;
-        keff=0.;
+        keff = 0.;
     }
 
     //Reset the current fission sites.
     ResetCurrentFissionData();
 
     //Add precursors if flag is set.
-    if(updatePrecursors)
+    if (updatePrecursors)
     {
-        genAction->AddPrecursors(GetCurrentFissionSites(),GetCurrentFissionEnergy());
+        genAction->AddPrecursors(GetCurrentFissionSites(), GetCurrentFissionEnergy());
     }
 
     // Find the run time
     runTimer.Stop();
 
-
     // Output data to the output stream (csv format)
     output->fill(' ');
-    *output << std::setw(6) << std::right << aRun->GetRunID()+1 << " "
+    *output << std::setw(6) << std::right << aRun->GetRunID() + 1 << " "
             << std::right << std::resetiosflags(std::ios_base::floatfield)
             << std::setw(16) << (aRun->GetRunID()) * runDuration / tUnit << " "
             << std::setw(12) << std::setprecision(4)
@@ -373,22 +363,23 @@ void StorkRunAction::EndOfRunAction(const G4Run *aRun)
             << std::setw(12) << numNLost << " "
             << std::setw(12) << std::setprecision(4)
             << std::fixed << krun << " "
-            << std::setw(12) << std::fixed  << keff << " "
+            << std::setw(12) << std::fixed << keff << " "
             << std::setw(12) << std::setprecision(4) << std::fixed
             << shannonEntropy[0] << " "
             << std::setw(12) << std::setprecision(4) << std::fixed
             << shannonEntropy[1] << " "
             << std::resetiosflags(std::ios_base::floatfield)
             << std::setw(12) << runTimer.GetRealElapsed()
-            << std::setw(12) << G4double(survivors.size())/totalFS
+            << std::setw(12) << G4double(survivors.size()) / totalFS
             << std::setw(12) << totalFS;
-    if(neutronFluxCalc){
+    if (neutronFluxCalc)
+    {
         *output << std::setw(12) << std::setprecision(4)
                 << neutronFlux;
     }
 
-	// Output the current value of the interpolated material properties
-    for(G4int i=0; i<theMPInterpMan->GetNumberOfInterpVectors(); i++)
+    // Output the current value of the interpolated material properties
+    for (G4int i = 0; i < theMPInterpMan->GetNumberOfInterpVectors(); i++)
     {
         *output << std::setw(nameLen[i]) << variableProps[i];
     }
@@ -406,13 +397,12 @@ void StorkRunAction::EndOfRunAction(const G4Run *aRun)
     runResults[7] = runTimer.GetRealElapsed();
 
     // Increment fission data collection counter
-    if(saveFissionData)
-		numFDCollectionRuns++;
+    if (saveFissionData)
+        numFDCollectionRuns++;
 
 #ifdef G4TIMERA
     runCalcTimer.Stop();
     totalRunCalcTime += runCalcTimer.GetRealElapsed();
-
 
     G4cout << "Run Timing:" << G4endl
            << "Total run time:  " << runTimer << G4endl
@@ -420,7 +410,6 @@ void StorkRunAction::EndOfRunAction(const G4Run *aRun)
            << G4endl;
 #endif
 }
-
 
 // CalcShannonEntropy()
 // Calculate the Shannon entropy of the given sites.
@@ -430,16 +419,16 @@ G4double StorkRunAction::CalcShannonEntropy(G4int ***sites, G4int total)
     G4double entropy = 0.0;
 
     // Find the Shannon entropy
-    for(G4int i=0; i<numSpatialSteps[0]; i++)
+    for (G4int i = 0; i < numSpatialSteps[0]; i++)
     {
-        for(G4int j=0; j<numSpatialSteps[1]; j++)
+        for (G4int j = 0; j < numSpatialSteps[1]; j++)
         {
-            for(G4int k=0; k<numSpatialSteps[2]; k++)
+            for (G4int k = 0; k < numSpatialSteps[2]; k++)
             {
                 // Find the probability of the ijk-th site having a fission
                 Pijk = G4double(sites[i][j][k]) / G4double(total);
 
-                if(Pijk)
+                if (Pijk)
                 {
                     // Add the entropy of the ijk-th site
                     entropy += Pijk * std::log(Pijk) / std::log(2);
@@ -449,11 +438,10 @@ G4double StorkRunAction::CalcShannonEntropy(G4int ***sites, G4int total)
     }
 
     // Convert the entropy to a percentage of the maximum entropy
-    entropy *= -100.0/maxShannonEntropy;
+    entropy *= -100.0 / maxShannonEntropy;
 
     return entropy;
 }
-
 
 // TallyEvent()
 // Add the event data to the running tallies and containers.
@@ -483,28 +471,29 @@ void StorkRunAction::TallyEvent(const StorkEventData *eventData)
     totalFS += numSites;
 
     // Discretize fission sites
-    for(G4int i=0; i<numSites; i++)
+    for (G4int i = 0; i < numSites; i++)
     {
         fInd = SpatialIndex(((*(eventData->fSites))[i]).data);
         fSites[fInd.first][fInd.second][fInd.third]++;
     }
 
     // Discretize survivor positions
-    for(G4int i=0; i<G4int(eventData->survivors->size()); i++)
+    for (G4int i = 0; i < G4int(eventData->survivors->size()); i++)
     {
-    	fInd = SpatialIndex(((*(eventData->survivors))[i]).third);
-    	sSites[fInd.first][fInd.second][fInd.third]++;
+        fInd = SpatialIndex(((*(eventData->survivors))[i]).third);
+        sSites[fInd.first][fInd.second][fInd.third]++;
     }
 
     // Save fission data if necessary
-    if(saveFissionData || updatePrecursors)
+    if (saveFissionData || updatePrecursors)
     {
-    	if(saveFissionData) numDelayProd += eventData->numDProd;
+        if (saveFissionData)
+            numDelayProd += eventData->numDProd;
 
-    	fnEnergies.insert(fnEnergies.end(),eventData->fnEnergy->begin(),
-						  eventData->fnEnergy->end());
-        fnSites.insert(fnSites.end(),eventData->fSites->begin(),
-					   eventData->fSites->end());
+        fnEnergies.insert(fnEnergies.end(), eventData->fnEnergy->begin(),
+                          eventData->fnEnergy->end());
+        fnSites.insert(fnSites.end(), eventData->fSites->begin(),
+                       eventData->fSites->end());
     }
 
 #ifdef G4TIMERA
@@ -514,23 +503,20 @@ void StorkRunAction::TallyEvent(const StorkEventData *eventData)
 #endif
 }
 
-
 // CollateNeutronSources()
 // Combine the neutron source buffers into a single list for each buffer
 void StorkRunAction::CollateNeutronSources()
 {
     // Add the sources in order to their respective containers
-    for(G4int i=0; i < numEvents; i++)
+    for (G4int i = 0; i < numEvents; i++)
     {
         // Add survivors and delayed for ith event
-        survivors.insert(survivors.end(),(survivorsBuffer[i]).begin(),
+        survivors.insert(survivors.end(), (survivorsBuffer[i]).begin(),
                          (survivorsBuffer[i]).end());
-        delayed.insert(delayed.end(),(delayedBuffer[i]).begin(),
+        delayed.insert(delayed.end(), (delayedBuffer[i]).begin(),
                        (delayedBuffer[i]).end());
     }
-
 }
-
 
 // SpatialIndex()
 // Find the spatial index of a fission site based on the given world
@@ -539,25 +525,24 @@ Index3D StorkRunAction::SpatialIndex(G4ThreeVector position) const
 {
     Index3D site;
 
-    site.first = G4int(numSpatialSteps[0] * (position[0]/worldSize[0] + 0.5));
-    site.second = G4int(numSpatialSteps[1] * (position[1]/worldSize[1] + 0.5));
-    site.third = G4int(numSpatialSteps[2] * (position[2]/worldSize[2] + 0.5));
+    site.first = G4int(numSpatialSteps[0] * (position[0] / worldSize[0] + 0.5));
+    site.second = G4int(numSpatialSteps[1] * (position[1] / worldSize[1] + 0.5));
+    site.third = G4int(numSpatialSteps[2] * (position[2] / worldSize[2] + 0.5));
 
     // Check to make sure index is in range
-    if(site.first < 0 || site.first >= numSpatialSteps[0] ||
-		site.second < 0 || site.second >= numSpatialSteps[1] ||
-		site.third < 0 || site.third >= numSpatialSteps[2])
-	{
-		G4cerr << "*** ERROR:  Improper indexing in Shannon entropy mesh."
-		       << G4endl << "World box dimensions = " << worldSize << G4endl
-		       << "\t Current position = " << position << G4endl
-		       << "\t Calculated index = (" << site.first << ","
-		       << site.second << "," << site.third << ")  ***" << G4endl;
-	}
+    if (site.first < 0 || site.first >= numSpatialSteps[0] ||
+        site.second < 0 || site.second >= numSpatialSteps[1] ||
+        site.third < 0 || site.third >= numSpatialSteps[2])
+    {
+        G4cerr << "*** ERROR:  Improper indexing in Shannon entropy mesh."
+               << G4endl << "World box dimensions = " << worldSize << G4endl
+               << "\t Current position = " << position << G4endl
+               << "\t Calculated index = (" << site.first << ","
+               << site.second << "," << site.third << ")  ***" << G4endl;
+    }
 
     return site;
 }
-
 
 // SetWorldProperty()
 // Sets the requested material property in the worldPropMap to the desired value
@@ -565,7 +550,6 @@ void StorkRunAction::UpdateWorldProperties(G4double *values)
 {
     variableProps = values;
 }
-
 
 // SaveSources()
 // Saves the survivors and delayed to a text file with the following format
@@ -585,31 +569,33 @@ void StorkRunAction::SaveSources(G4String fname, G4int curRunID, G4double runEnd
 #endif
 
     runID = curRunID;
-	// Print the current state of the random engine
-	CLHEP::HepRandom::saveEngineStatus(fname);
+    // Print the current state of the random engine
+    CLHEP::HepRandom::saveEngineStatus(fname);
 
-	// User variables
+    // User variables
     G4int numEntries;
     StorkNeutronData *record;
 
-	// Open stream to output file (append)
-	G4String FDir = fname.substr(0, fname.find_last_of('/'));
-	if(!(DirectoryExists(FDir.data())))
+    // Open stream to output file (append)
+    G4String FDir = fname.substr(0, fname.find_last_of('/'));
+    if (!(DirectoryExists(FDir.data())))
     {
-        system( ("mkdir -p -m=777 "+FDir).c_str());
-        if(DirectoryExists(FDir.data()))
+        system(("mkdir -p -m=777 " + FDir).c_str());
+        if (DirectoryExists(FDir.data()))
         {
-            G4cout << "created directory " << FDir << "\n" << G4endl;
+            G4cout << "created directory " << FDir << "\n"
+                   << G4endl;
         }
         else
         {
-            G4cout << "\nError: could not create directory " << FDir << "\n" << G4endl;
+            G4cout << "\nError: could not create directory " << FDir << "\n"
+                   << G4endl;
             return;
         }
     }
-    std::ofstream outFile(fname.data(),std::ios_base::app);
+    std::ofstream outFile(fname.data(), std::ios_base::app);
 
-    if(!outFile.is_open())
+    if (!outFile.is_open())
     {
         *output << G4endl << "Error:  Could not write source to file."
                 << "Improper file name " << fname << G4endl;
@@ -624,7 +610,7 @@ void StorkRunAction::SaveSources(G4String fname, G4int curRunID, G4double runEnd
     outFile << "#" << G4endl;
 
     // Write time of records and number of runs
-    outFile << "# Source distribution after " << runID  << " runs" << G4endl
+    outFile << "# Source distribution after " << runID << " runs" << G4endl
             << "#" << G4endl << runEnd << G4endl;
 
     // Write number of survivors then each survivors
@@ -633,7 +619,7 @@ void StorkRunAction::SaveSources(G4String fname, G4int curRunID, G4double runEnd
 
     outFile.fill(' ');
 
-    for(G4int i=0; i<numEntries; i++)
+    for (G4int i = 0; i < numEntries; i++)
     {
         record = &(survivors[i]);
         outFile << std::resetiosflags(std::ios_base::floatfield)
@@ -653,12 +639,11 @@ void StorkRunAction::SaveSources(G4String fname, G4int curRunID, G4double runEnd
                 << std::setw(25) << record->ninth << G4endl;
     }
 
-
     // Write the number of delayed and then each delayed neutron record
     numEntries = delayed.size();
     outFile << numEntries << G4endl;
 
-    for(G4int i=0; i<numEntries; i++)
+    for (G4int i = 0; i < numEntries; i++)
     {
         record = &(delayed[i]);
         outFile << std::resetiosflags(std::ios_base::floatfield)
@@ -687,50 +672,50 @@ void StorkRunAction::SaveSources(G4String fname, G4int curRunID, G4double runEnd
 #endif
 }
 
-
 // WriteFissionData()
 // Write fission sites and energies to file
 G4bool StorkRunAction::WriteFissionData(G4String fname,
-									 G4int start)
+                                        G4int start)
 {
-	// Declare and open file stream
-	G4String FDir = fname.substr(0, fname.find_last_of('/'));
-	if(!(DirectoryExists(FDir.data())))
+    // Declare and open file stream
+    G4String FDir = fname.substr(0, fname.find_last_of('/'));
+    if (!(DirectoryExists(FDir.data())))
     {
-        system( ("mkdir -p -m=777 "+FDir).c_str());
-        if(DirectoryExists(FDir.data()))
+        system(("mkdir -p -m=777 " + FDir).c_str());
+        if (DirectoryExists(FDir.data()))
         {
-            G4cout << "created directory " << FDir << "\n" << G4endl;
+            G4cout << "created directory " << FDir << "\n"
+                   << G4endl;
         }
         else
         {
-            G4cout << "\nError: could not create directory " << FDir << "\n" << G4endl;
+            G4cout << "\nError: could not create directory " << FDir << "\n"
+                   << G4endl;
             return false;
         }
     }
-	std::ofstream outFile(fname.c_str(),std::ifstream::out);
+    std::ofstream outFile(fname.c_str(), std::ifstream::out);
 
-	// Check that stream is ready for use
-	if(!outFile.good())
-	{
-		G4cerr << G4endl << "ERROR:  Could not write source to file. "
-			   << "Improper file name: " << fname << G4endl;
+    // Check that stream is ready for use
+    if (!outFile.good())
+    {
+        G4cerr << G4endl << "ERROR:  Could not write source to file. "
+               << "Improper file name: " << fname << G4endl;
 
-		return false;
-	}
+        return false;
+    }
 
-	// Check if fission data vectors are the same size
-	if(G4int(fnEnergies.size()) != G4int(fnSites.size()))
-	{
-		G4cerr << G4endl << "ERROR:  Different numbers of fission sites and "
-		       << "fission energies: " << G4int(fnSites.size()) << "/"
-		       << G4int(fnEnergies.size()) << G4endl;
+    // Check if fission data vectors are the same size
+    if (G4int(fnEnergies.size()) != G4int(fnSites.size()))
+    {
+        G4cerr << G4endl << "ERROR:  Different numbers of fission sites and "
+               << "fission energies: " << G4int(fnSites.size()) << "/"
+               << G4int(fnEnergies.size()) << G4endl;
 
-		return false;
-	}
+        return false;
+    }
 
-
-	// Write header lines
+    // Write header lines
     outFile << "# Fission data file for following input:" << G4endl
             << "#" << G4endl;
 
@@ -741,11 +726,11 @@ G4bool StorkRunAction::WriteFissionData(G4String fname,
             << start << G4endl << "#" << G4endl;
 
     //Get the collection interval.
-    G4int collectionInt = numRuns-start;
-    if(saveInterval)
+    G4int collectionInt = numRuns - start;
+    if (saveInterval)
         collectionInt = saveInterval;
 
-    if(updatePrecursors)
+    if (updatePrecursors)
     {
         //Get the precursor numbers
         std::vector<G4int> precursors = genAction->GetPrecursors();
@@ -753,17 +738,18 @@ G4bool StorkRunAction::WriteFissionData(G4String fname,
         //Write the precursor data
         outFile << "# Precursor Groups: " << G4endl;
 
-        for(G4int i = 0; i<6; i++){
+        for (G4int i = 0; i < 6; i++)
+        {
             outFile << std::setw(12) << precursors[i] << G4endl;
         }
     }
     // Write number of fission data points, the run duration, the current run and primaries simulated per run.
-    G4int numEntries = G4int(fnEnergies.size())-save_index;
+    G4int numEntries = G4int(fnEnergies.size()) - save_index;
     outFile << numEntries << G4endl << runDuration << G4endl << collectionInt << G4endl
             << primariesPerRun << G4endl;
 
     outFile.fill(' ');
-    for(G4int i = save_index; i<numEntries; i++)
+    for (G4int i = save_index; i < G4int(fnEnergies.size()); i++)
     {
 
         outFile << std::resetiosflags(std::ios_base::floatfield) << std::right
@@ -774,40 +760,40 @@ G4bool StorkRunAction::WriteFissionData(G4String fname,
                 << std::setw(12) << fnEnergies[i] << G4endl;
     }
 
-
     outFile.close();
-
 
     return true;
 }
 
-G4bool StorkRunAction::DirectoryExists( const char* pzPath )
+G4bool StorkRunAction::DirectoryExists(const char *pzPath)
 {
-    if ( pzPath == NULL) return false;
+    if (pzPath == NULL)
+        return false;
 
     DIR *pDir;
     G4bool bExists = false;
 
-    pDir = opendir (pzPath);
+    pDir = opendir(pzPath);
 
     if (pDir != NULL)
     {
         bExists = true;
-        closedir (pDir);
+        closedir(pDir);
     }
 
     return bExists;
 }
 
-G4double StorkRunAction::CalcNeutronFlux(){
+G4double StorkRunAction::CalcNeutronFlux()
+{
 
     //Initialize known variables;
     G4int NumEntries = survivors.size();
     G4double Mass = G4Neutron::Neutron()->GetPDGMass();
 
     //In units of c (speed of light)
-    G4double lowVelocity_cutoff = sqrt(2*EnergyRange[0]/Mass);
-    G4double highVelocity_cutoff = sqrt(2*EnergyRange[1]/Mass);
+    G4double lowVelocity_cutoff = sqrt(2 * EnergyRange[0] / Mass);
+    G4double highVelocity_cutoff = sqrt(2 * EnergyRange[1] / Mass);
 
     //Initialize variables for neutron flux calculation.
     G4double volume;
@@ -817,103 +803,107 @@ G4double StorkRunAction::CalcNeutronFlux(){
     G4int CalcType;
     G4double x, y, z;
     G4bool inRegion;
-    G4double innerR=-1, outerR=-1, minX=-1, maxX=-1, minY=-1, maxY=-1, minZ=-1, maxZ=-1;
+    G4double innerR = -1, outerR = -1, minX = -1, maxX = -1, minY = -1, maxY = -1, minZ = -1, maxZ = -1;
 
     //Get region of interest and volume. This is relative to current set FluxOrigin (default = 0,0,0).
-    if(fluxCalcShape == "Cylinder"){
+    if (fluxCalcShape == "Cylinder")
+    {
         innerR = fluxCalcRegion[0];
         outerR = fluxCalcRegion[1];
         minZ = fluxCalcRegion[2];
         maxZ = fluxCalcRegion[3];
 
-        volume = CLHEP::pi*(maxZ-minZ)*( pow(outerR,2) - pow(innerR,2) );
+        volume = CLHEP::pi * (maxZ - minZ) * (pow(outerR, 2) - pow(innerR, 2));
         CalcType = 0;
-
-
     }
-    else if(fluxCalcShape == "Cube"){
-        minX = FluxOrigin[0]-fluxCalcRegion[0]/2;
-        maxX = FluxOrigin[0]+fluxCalcRegion[0]/2;
-        minY = FluxOrigin[1]-fluxCalcRegion[1]/2;
-        maxY = FluxOrigin[1]+fluxCalcRegion[1]/2;
-        minZ = FluxOrigin[2]-fluxCalcRegion[2]/2;
-        maxZ = FluxOrigin[2]+fluxCalcRegion[2]/2;
+    else if (fluxCalcShape == "Cube")
+    {
+        minX = FluxOrigin[0] - fluxCalcRegion[0] / 2;
+        maxX = FluxOrigin[0] + fluxCalcRegion[0] / 2;
+        minY = FluxOrigin[1] - fluxCalcRegion[1] / 2;
+        maxY = FluxOrigin[1] + fluxCalcRegion[1] / 2;
+        minZ = FluxOrigin[2] - fluxCalcRegion[2] / 2;
+        maxZ = FluxOrigin[2] + fluxCalcRegion[2] / 2;
 
-        volume = fluxCalcRegion[0]*fluxCalcRegion[1]*fluxCalcRegion[2];
+        volume = fluxCalcRegion[0] * fluxCalcRegion[1] * fluxCalcRegion[2];
         CalcType = 1;
     }
-    else if(fluxCalcShape == "Sphere"){
+    else if (fluxCalcShape == "Sphere")
+    {
         innerR = fluxCalcRegion[0];
         outerR = fluxCalcRegion[1];
 
-        volume = (4/3)*CLHEP::pi*(pow(outerR,3) - pow(innerR,3) );
+        volume = (4 / 3) * CLHEP::pi * (pow(outerR, 3) - pow(innerR, 3));
         CalcType = 2;
     }
-    else{
+    else
+    {
         G4cerr << "*** ERROR: Shape not properly specified for flux calculation." << G4endl;
         return 0;
     }
 
-
-
-
-
     //Calculate the simulated power in W.
-    G4double simulatedPower = numSites*198/(6.24150934*pow(10,12)*runDuration*pow(10,-9));
+    G4double simulatedPower = numSites * 198 / (6.24150934 * pow(10, 12) * runDuration * pow(10, -9));
 
     //Run through all survivors, check if they are in the material of interest and calculate fluence.
-    for(G4int i=0; i<NumEntries; i++){
+    for (G4int i = 0; i < NumEntries; i++)
+    {
 
-            //Reorient positions according to set FluxOrigin.
-        x = survivors[i].third[0]-FluxOrigin[0];
-        y = survivors[i].third[1]-FluxOrigin[1];
-        z = survivors[i].third[2]-FluxOrigin[2];
+        //Reorient positions according to set FluxOrigin.
+        x = survivors[i].third[0] - FluxOrigin[0];
+        y = survivors[i].third[1] - FluxOrigin[1];
+        z = survivors[i].third[2] - FluxOrigin[2];
 
         inRegion = false;
 
-        if(CalcType==0){
-            G4double radius = pow( (pow(x,2) + pow(y,2)) ,0.5 );
-            if( radius>innerR && radius<outerR && z>minZ && z<maxZ)
+        if (CalcType == 0)
+        {
+            G4double radius = pow((pow(x, 2) + pow(y, 2)), 0.5);
+            if (radius > innerR && radius < outerR && z > minZ && z < maxZ)
                 inRegion = true;
         }
-        else if(CalcType==1){
-            if(x>minX && x<maxX && y>minY && y<maxY && z>minZ && z<maxZ)
+        else if (CalcType == 1)
+        {
+            if (x > minX && x < maxX && y > minY && y < maxY && z > minZ && z < maxZ)
                 inRegion = true;
         }
-        else if(CalcType==2){
-            G4double radius = pow( (pow(x,2) + pow(y,2) + pow(z,2) ) ,0.5);
-            if( radius>innerR && radius<outerR)
+        else if (CalcType == 2)
+        {
+            G4double radius = pow((pow(x, 2) + pow(y, 2) + pow(z, 2)), 0.5);
+            if (radius > innerR && radius < outerR)
                 inRegion = true;
         }
 
         //Get the speed from the momentum of the neutron.
-        speed = sqrt(survivors[i].fourth[0]*survivors[i].fourth[0] + survivors[i].fourth[1]*survivors[i].fourth[1] +
-            survivors[i].fourth[2]*survivors[i].fourth[2])/Mass;
+        speed = sqrt(survivors[i].fourth[0] * survivors[i].fourth[0] + survivors[i].fourth[1] * survivors[i].fourth[1] +
+                     survivors[i].fourth[2] * survivors[i].fourth[2]) /
+                Mass;
 
         //Collect the sum if within the specified energy range and in the correct region.
-        if( speed > lowVelocity_cutoff && speed < highVelocity_cutoff && inRegion){
+        if (speed > lowVelocity_cutoff && speed < highVelocity_cutoff && inRegion)
+        {
             total += speed;
             tally++;
         }
     }
 
-    G4double simulatedFlux = 299.792458*total/(volume);
+    G4double simulatedFlux = 299.792458 * total / (volume);
     G4double currentPower = reactorPower;
 
     //Calculate actual flux, convert to cm^(-2)s^(-1) from mm^(-2)ns^(-1)
-    G4double actualFlux = pow(10,11)*simulatedFlux*currentPower/simulatedPower;
+    G4double actualFlux = pow(10, 11) * simulatedFlux * currentPower / simulatedPower;
 
     return actualFlux;
-
 }
 
-void StorkRunAction::ResetCurrentFissionData(){
+void StorkRunAction::ResetCurrentFissionData()
+{
 
     CurrentfnSites.clear();
     CurrentfnEnergy.clear();
 
-    CurrentfnSites.insert(CurrentfnSites.end(),fnSites.begin()+fn_index,fnSites.end());
-    CurrentfnEnergy.insert(CurrentfnEnergy.end(),fnEnergies.begin()+fn_index,fnEnergies.end());
+    CurrentfnSites.insert(CurrentfnSites.end(), fnSites.begin() + fn_index, fnSites.end());
+    CurrentfnEnergy.insert(CurrentfnEnergy.end(), fnEnergies.begin() + fn_index, fnEnergies.end());
 
     fn_index = fnSites.size();
 

@@ -92,13 +92,14 @@ class StorkParseInput
 		void SetInitialSourcePos(G4ThreeVector initSourcePosition) { initialSourcePos=initSourcePosition; }
 
 		//Chengxi Yang
-		G4ThreeVector GetInitialSourceDir() const { return initialSourceDir;}
-		void SetInitialSourceDir(G4ThreeVector initSourceDirection) { initialSourceDir=initSourceDirection; }
-		G4int beamPrimaries;
+		G4bool GetBeam() const {return useBeam;}
 		G4int GetBeamPrimaries() const {return beamPrimaries;}
 		void SetBeamPrimaries(G4int beamNum) {beamPrimaries=beamNum;}
-		G4bool useBeam;
-		G4bool GetBeam() const {return useBeam;}
+		G4ThreeVector GetInitialSourceDir() const { return initialSourceDir;}
+		void SetInitialSourceDir(G4ThreeVector initSourceDirection) { initialSourceDir=initSourceDirection; }
+		G4bool GetInitialPrecursors() const {return initialPrecursors;}
+		std::vector<G4int> GetPrecursorNum()const {return Precursors;}
+		
 		
 		G4String GetUniformDistributionShape() const { return uniDisShape; }
 		void SetUniformDistributionShape(G4String uniformDisShape) { uniDisShape=uniformDisShape; }
@@ -351,7 +352,11 @@ class StorkParseInput
 		G4ThreeVector initialSourcePos;
 
 		//Chengxi Yang
+		G4bool useBeam;
+		G4int beamPrimaries;
 		G4ThreeVector initialSourceDir;
+		G4bool initialPrecursors;
+		std::vector<G4int> Precursors;
 		
 		// Shannon entropy mesh and convergence limits
 		G4int numSteps[3];

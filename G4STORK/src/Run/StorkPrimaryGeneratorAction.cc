@@ -17,8 +17,10 @@ Source code for StorkPrimaryGeneratorAction class.
 
 // Modified Code for delayed neutrons. Always add delayed when using beam, and use the delayed neutrons from GEANT4, this modification has to be combined with the change in StorkNeutronSD.cc SaveSurvivors
 
-//From Now delayedOption==3-> use Precursors and Geant4 Fission to generate delayed
-//         delayedOption==2-> use SourceFile and Geant4 Fission to generate delayed
+//From Now delayedOption==3-> use Precursors to generate delayed;
+//         delayedOption==2-> use SourceFile and Geant4 Fission to generate delayed;
+//         delayedOption==1-> instant delayed, the delayed were put in survivors;
+//         delayedOption==0-> no delayed, never add delayed into the survivors.
 
 //ALWAYS add delayed
 
@@ -39,20 +41,22 @@ StorkPrimaryGeneratorAction::StorkPrimaryGeneratorAction(
     uniDisDim = infile->GetUniformDistDim();
     shape = infile->GetUniformDistributionShape();
     origin = infile->GetInitialSourcePos();
-    //Chengxi Yang
-    direction = infile->GetInitialSourceDir();
+
     initialSource = false;
     normalize = infile->GetRenormalizeAfterRun();
     instantDelayed = infile->GetInstantDelayed();
     precursorDelayed = infile->GetPrecursorDelayed();
     runDuration = infile->GetRunDuration();
-    beamPrimaries = infile->GetBeamPrimaries();
     theNav = G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
     sourcefileDelayed = infile->GetSourceFileDelayed();
-    //Chengxi Yang
-    useBeam = infile->GetBeam();
     delayedNeutronGenerator = NULL;
     primaryData = NULL;
+    //Chengxi Yang
+    useBeam = infile->GetBeam();
+    beamPrimaries = infile->GetBeamPrimaries();
+    direction = infile->GetInitialSourceDir();
+    initialPrecursors = infile->GetInitialPrecursors();
+    Precursors = infile->GetPrecursorNum();
 
     // Set initial source files (on master only)
     if (master)
@@ -63,6 +67,11 @@ StorkPrimaryGeneratorAction::StorkPrimaryGeneratorAction(
         {
             delayedSourceFile = infile->GetInitialDelayedFile();
             delayedNeutronGenerator = new StorkDelayedNeutron(delayedSourceFile, runDuration, numPrimaries);
+            if (initialPrecursors)
+            {
+                delayedNeutronGenerator->SetPrecursors(Precursors);
+            }
+            delayedNeutronGenerator->GetInitialPrecursors(numPrimaries, initialPrecursors);
         }
     }
 
@@ -342,7 +351,7 @@ void StorkPrimaryGeneratorAction::UpdateSourceDistributions(
     survivors.assign(nSource->begin(), nSource->end());
 
     // Always add the delayed neutrons
-    if (!precursorDelayed)
+    if (!precursorDelayed && sourcefileDelayed)
     {
         // Add the delayed neutrons to the end of the delayed neutron list
         dNeutrons.insert(dNeutrons.end(), dnSource->begin(), dnSource->end());

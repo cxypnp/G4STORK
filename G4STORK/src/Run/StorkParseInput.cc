@@ -79,8 +79,10 @@ StorkParseInput::StorkParseInput(G4bool master)
 
     MCNPEnvCheck *runLikeMCNP;
     runLikeMCNP->SetFlag(false);
-
-	useBeam= false;	//Chengxi Yang
+	//Chengxi Yang
+	useBeam= false;	
+	initialPrecursors = false;
+	Precursors.resize(6);
 	
 	// Set null file names
 	logFile = "";
@@ -769,6 +771,14 @@ G4bool StorkParseInput::ReadInputFile(G4String filename)
 			//Chengxi Yang
 			useBeam= true;
 			infile >> beamPrimaries;
+		}
+		else if(keyWord=="INITIAL_PRECURSORS")
+		{
+			//Chengxi Yang
+			initialPrecursors= true;
+			Precursors.resize(6);
+			G4cerr << "***ERROR: Precursors.resize(6);" << G4endl;
+			infile >> Precursors[0] >> Precursors[1] >>Precursors[2]>>Precursors[3] >>Precursors[4] >>Precursors[5];
 		}
         // Error if unknown keyword
 		else

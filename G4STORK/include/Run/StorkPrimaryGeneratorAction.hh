@@ -186,6 +186,7 @@ class StorkPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
         G4bool useBeam;//Chengxi Yang
         G4int beamPrimaries;
+        G4bool initialPrecursors;
 
 #ifdef G4TIMEPG
         G4Timer genTimer;

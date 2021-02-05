@@ -9,9 +9,9 @@
 class StorkDelayedNeutron
 {
     //Public methods
-    public:
+public:
     //Constructor
-    StorkDelayedNeutron(G4String dnFilename,G4double runDuration,G4int numPrimaries);
+    StorkDelayedNeutron(G4String dnFilename, G4double runDuration, G4int numPrimaries);
 
     //Destructor
     virtual ~StorkDelayedNeutron();
@@ -20,8 +20,8 @@ class StorkDelayedNeutron
     void AddPrecursors();
 
     //Get and set functions
-    void SetPrecursors(std::vector<G4int> p) {Precursors = p;}
-    std::vector<G4int> GetPrecursors() {return Precursors;}
+    void SetPrecursors(std::vector<G4int> p) { Precursors = p; }
+    std::vector<G4int> GetPrecursors() { return Precursors; }
 
     //Generate delayed neutrons through roulette of precursors.
     NeutronSources GetDelayedNeutrons(G4double runEnd);
@@ -29,21 +29,16 @@ class StorkDelayedNeutron
     //Set the fission sites and energies.
     void SetFissionSource(MSHSiteVector fissionSites, DblVector fissionEnergies);
 
-    //Private methods
-    private:
-
     // Produce initial precursor groups
-    G4bool GetInitialPrecursors(G4int numPrimaries);
+    G4bool GetInitialPrecursors(G4int numPrimaries, G4bool initialPrecursors);
 
-
-
-
+    //Private methods
+private:
     //Samples an isotope using incident fission energy and site, returns an index.
-   // G4int fissionIndex(G4double fEnergy, G4ThreeVector fSite);
-
+    // G4int fissionIndex(G4double fEnergy, G4ThreeVector fSite);
 
     //Private variables
-    private:
+private:
     //Initial fission file name.
     G4String delayedSourceFile;
 
@@ -56,9 +51,6 @@ class StorkDelayedNeutron
 
     //Run duration
     G4double runDuration;
-
-
-
 };
 
 #endif

@@ -12,7 +12,7 @@ The precursor number should be subtracted after the cycle, not in the cycle
 
 #include "StorkDelayedNeutron.hh"
 
-StorkDelayedNeutron::StorkDelayedNeutron(G4String dnFilename,G4double runduration, G4int numPrimaries)
+StorkDelayedNeutron::StorkDelayedNeutron(G4String dnFilename, G4double runduration, G4int numPrimaries)
 {
     //Set the fission file name.
     delayedSourceFile = dnFilename;
@@ -21,115 +21,120 @@ StorkDelayedNeutron::StorkDelayedNeutron(G4String dnFilename,G4double runduratio
     runDuration = runduration;
 
     //Get neutron particle object
-    G4ParticleTable* pTable = G4ParticleTable::GetParticleTable();
+    G4ParticleTable *pTable = G4ParticleTable::GetParticleTable();
     neutron = pTable->FindParticle("neutron");
 
-    //Setup initial precursor population
-    GetInitialPrecursors(numPrimaries);
-
-
+    // // //Setup initial precursor population
+    // GetInitialPrecursors(numPrimaries);
 }
 
 StorkDelayedNeutron::~StorkDelayedNeutron()
 {
-
 }
 
-G4bool StorkDelayedNeutron::GetInitialPrecursors(G4int numPrimaries)
+G4bool StorkDelayedNeutron::GetInitialPrecursors(G4int numPrimaries, G4bool initialPrecursors)
 {
-	// Local variables
-	char line[256];
-	G4int numRuns;
+    // Local variables
+    char line[256];
+    G4int numRuns;
     G4int numEntries;
-	G4double primariesPerRun;
+    G4double primariesPerRun;
     G4double runTime;
     G4double adjustmentFactor;
     G4bool createPrecursors = true;
     Precursors.resize(6);
 
+    // Load data from file
+    std::ifstream dnfile(delayedSourceFile);
 
-	// Load data from file
-	std::ifstream dnfile(delayedSourceFile);
-
-	// Check if file opened properly
-	if(!dnfile.good())
-	{
-		G4cerr << "*** WARNING:  Unable to open initial delayed neutron file:"
-        << delayedSourceFile << G4endl;
-		return false;
-	}
-
-	// Skip header lines
-	while(dnfile.peek() == '#')
-		dnfile.getline(line,256);
-
-    //Read in precursor data if nonzero.
-    for(G4int i = 0; i<6; i++){
-        dnfile >> Precursors[i];
-        if(Precursors[i]!=0) createPrecursors = false;
+    // Check if file opened properly
+    if (!dnfile.good())
+    {
+        G4cerr << "*** WARNING:  Unable to open initial delayed neutron file:"
+               << delayedSourceFile << G4endl;
+        return false;
     }
 
+    // Skip header lines
+    while (dnfile.peek() == '#')
+        dnfile.getline(line, 256);
 
-	// Read in delayed neutron distribution parameters
-	// Number of entries, runtime, number of runs collected over, primaries per run.
-	dnfile >> numEntries >> runTime >> numRuns >> primariesPerRun ;
+    //Read in precursor data if nonzero.
+    if (!initialPrecursors)
+    {
+        for (G4int i = 0; i < 6; i++)
+        {
+            dnfile >> Precursors[i];
+            if (Precursors[i] != 0)
+                createPrecursors = false;
+        }
+    }
+    else
+    {
+        createPrecursors = false;
+    }
 
+    // Read in delayed neutron distribution parameters
+    // Number of entries, runtime, number of runs collected over, primaries per run.
+    dnfile >> numEntries >> runTime >> numRuns >> primariesPerRun;
 
     // Resize the fission vectors.
     fSites.resize(numEntries);
     fEnergy.resize(numEntries);
 
+    // Read in fission data.
+    for (G4int i = 0; i < numEntries && dnfile.good(); i++)
+    {
 
-	// Read in fission data.
-	for(G4int i=0; i<numEntries && dnfile.good(); i++)
-	{
-
-		dnfile >> fSites[i][0] >> fSites[i][1] >> fSites[i][2] >> fEnergy[i];
-
-	}
+        dnfile >> fSites[i][0] >> fSites[i][1] >> fSites[i][2] >> fEnergy[i];
+    }
 
     //Create the precursors if needed.
-    if(createPrecursors){
+    if (createPrecursors)
+    {
         //Total time of previous simulation.
-        G4double totalTime = pow(10,-9)*numRuns*runTime;
+        G4double totalTime = pow(10, -9) * numRuns * runTime;
         //Iterate through fission sites and energies to create precursors.
         // Will need to change this method. Precursor populations should be directly calculated.
 
-        G4int totalPrecursors = G4int(numEntries*TotPrecursorConstants/totalTime);
+        G4int totalPrecursors = G4int(numEntries * TotPrecursorConstants / totalTime);
 
-        for(G4int i=0; i<totalPrecursors; i++){
+        for (G4int i = 0; i < totalPrecursors; i++)
+        {
 
             // For now assume that U235 is the only fuel, uncomment or edit if you want to factor in more types of fuel.
             //Can also edit the StorkDelayedData.hh to change delay constants and fission yields.
 
             //index = fissionIndex(fEnergy[i],fSites[i]);
 
-            G4double r = G4UniformRand()*TotPrecursorConstants;
+            G4double r = G4UniformRand() * TotPrecursorConstants;
 
             G4double temp = 0.0;
 
-            for(G4int j=0;j<6;j++){
+            for (G4int j = 0; j < 6; j++)
+            {
 
                 temp += PrecursorConstants[j];
 
-                if( r < temp){
+                if (r < temp)
+                {
                     Precursors[j]++;
                     break;
                 }
             }
         }
-
     }
 
-
-
-    //Adjustment factor for differing number of primaries.
-    adjustmentFactor = numPrimaries/G4double(primariesPerRun);
-    //Rescale the groups.
-    for(G4int i=0; i<6;i++){
-        Precursors[i] = G4int(adjustmentFactor*Precursors[i]);
+    if (!initialPrecursors)
+    {
+        //Adjustment factor for differing number of primaries.
+        adjustmentFactor = numPrimaries / G4double(primariesPerRun);
+        //Rescale the groups.
+        for (G4int i = 0; i < 6; i++)
+        {
+            Precursors[i] = G4int(adjustmentFactor * Precursors[i]);
+        }
     }
-
     return true;
 }
 
@@ -139,8 +144,8 @@ void StorkDelayedNeutron::SetFissionSource(MSHSiteVector fissionSites, DblVector
     fSites.clear();
     fEnergy.clear();
 
-    fSites.insert(fSites.end(),fissionSites.begin(),fissionSites.end());
-    fEnergy.insert(fEnergy.end(),fissionEnergies.begin(),fissionEnergies.end());
+    fSites.insert(fSites.end(), fissionSites.begin(), fissionSites.end());
+    fEnergy.insert(fEnergy.end(), fissionEnergies.begin(), fissionEnergies.end());
 
     return;
 }
@@ -151,7 +156,8 @@ void StorkDelayedNeutron::AddPrecursors()
     G4int index;
     G4double totalYield;
 
-    for(G4int i = 0; i < entries; i++){
+    for (G4int i = 0; i < entries; i++)
+    {
 
         // For now assume that U235 is the only fuel, uncomment or edit if you want to factor in more types of fissionable isotopes.
         //Can also edit the StorkDelayedData.hh to change delay constants and fission yields.
@@ -160,35 +166,33 @@ void StorkDelayedNeutron::AddPrecursors()
 
         index = 0;
 
-
         //Get the total yield.
         totalYield = TotalYields[index];
 
         //Roll the dice to determine if a precursor is created.
-        if(G4UniformRand() < totalYield){
+        if (G4UniformRand() < totalYield)
+        {
 
             //Initialize temporary variable (cumulative yield) to determine which precursor.
             G4double temp = 0.0;
             //Random number for precursor group.
-            G4double rand = G4UniformRand()*totalYield;
+            G4double rand = G4UniformRand() * totalYield;
 
             //Iterate through the precursor yields.
-            for(G4int j = 0; j<6; j++){
+            for (G4int j = 0; j < 6; j++)
+            {
                 temp = temp + FissionYields[index][j];
-                if(rand < temp){
+                if (rand < temp)
+                {
                     Precursors[j]++;
                     break;
                 }
-
             }
-
         }
-
     }
 
     return;
 }
-
 
 NeutronSources StorkDelayedNeutron::GetDelayedNeutrons(G4double runEnd)
 {
@@ -199,56 +203,55 @@ NeutronSources StorkDelayedNeutron::GetDelayedNeutrons(G4double runEnd)
     G4double nMom;
     NeutronSources dNeutrons;
     StorkNeutronData theDelayed;
-    G4double precursorLoss[6]={0,0,0,0,0,0};
+    G4double precursorLoss[6] = {0, 0, 0, 0, 0, 0};
 
-    for(G4int i=0; i<6; i++){
+    for (G4int i = 0; i < 6; i++)
+    {
 
-        for(G4int j = 0; j< Precursors[i] ; j++){
+        for (G4int j = 0; j < Precursors[i]; j++)
+        {
 
             //Roulette to find the time of decay.
             G4double r = G4UniformRand();
-            G4double TimeOfDecay = (-log(r)/DecayConstants[0][i])*pow(10,9);
+            G4double TimeOfDecay = (-log(r) / DecayConstants[0][i]) * pow(10, 9);
 
             //Check if within upcoming run if so decay a precursor and create a delayed neutron.
-            if (TimeOfDecay<runDuration){
+            if (TimeOfDecay < runDuration)
+            {
 
                 //Get a random indice for a fission site.
-                G4int R_ind = (G4int) std::floor(G4UniformRand()*fSites.size() + 0.5);
+                G4int R_ind = (G4int)std::floor(G4UniformRand() * fSites.size() + 0.5);
                 G4ThreeVector site(fSites[R_ind].data);
 
                 //Remove a precursor.
                 precursorLoss[i]++;
 
                 //Gaussian sample for a momentum.
-                nMom = G4RandGauss::shoot(sqrt(2*mass*EnergyYields[0][i]),0.05);
+                nMom = G4RandGauss::shoot(sqrt(2 * mass * EnergyYields[0][i]), 0.05);
 
                 // Create the incident neutron
-                theMomDir.setRThetaPhi(nMom, G4UniformRand()*CLHEP::pi,
-                                       G4UniformRand()*2.0*CLHEP::pi);
+                theMomDir.setRThetaPhi(nMom, G4UniformRand() * CLHEP::pi,
+                                       G4UniformRand() * 2.0 * CLHEP::pi);
                 //Get global time of decay.
-                G4double GlobalDecayTime = (runEnd-runDuration)+TimeOfDecay;
+                G4double GlobalDecayTime = (runEnd - runDuration) + TimeOfDecay;
 
                 // Set delayed neutron data.
-                theDelayed = StorkNeutronData(GlobalDecayTime ,0.,site,theMomDir);
+                theDelayed = StorkNeutronData(GlobalDecayTime, 0., site, theMomDir);
 
                 // Add to delayed neutron list
                 dNeutrons.push_back(theDelayed);
-
             }
-
         }
     }
 
     for (int i = 0; i < 6; i++)
     {
-        Precursors[i]-=precursorLoss[i];
+        Precursors[i] -= precursorLoss[i];
     }
-    
+
     //Return the list of created delayed neutrons.
     return dNeutrons;
 }
-
-
 
 /*
 //Finds the isotope involved in the fission process.
@@ -289,5 +292,3 @@ G4int StorkDelayedNeutron::fissionIndex(G4double fEnergy, G4ThreeVector fSite)
     return index;
 }
  */
-
-
