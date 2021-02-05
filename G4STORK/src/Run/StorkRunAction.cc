@@ -758,7 +758,7 @@ G4bool StorkRunAction::WriteFissionData(G4String fname,
         }
     }
     // Write number of fission data points, the run duration, the current run and primaries simulated per run.
-    G4int numEntries = G4int(fnEnergies.size());
+    G4int numEntries = G4int(fnEnergies.size())-save_index;
     outFile << numEntries << G4endl << runDuration << G4endl << collectionInt << G4endl
             << primariesPerRun << G4endl;
 
