@@ -12,11 +12,11 @@ The precursor number should be subtracted after the cycle, not in the cycle
 
 #include "StorkDelayedNeutron.hh"
 
-StorkDelayedNeutron::StorkDelayedNeutron(G4String dnFilename, G4double runduration, G4int numPrimaries)
+StorkDelayedNeutron::StorkDelayedNeutron(G4String dnFilename, G4double runduration, G4int numPrimaries,G4bool initialprecursors)
 {
     //Set the fission file name.
     delayedSourceFile = dnFilename;
-
+    
     //Get the run Duration
     runDuration = runduration;
 
@@ -24,6 +24,7 @@ StorkDelayedNeutron::StorkDelayedNeutron(G4String dnFilename, G4double rundurati
     G4ParticleTable *pTable = G4ParticleTable::GetParticleTable();
     neutron = pTable->FindParticle("neutron");
 
+    initialPrecursors = initialprecursors;
     // // //Setup initial precursor population
     // GetInitialPrecursors(numPrimaries);
 }
@@ -32,7 +33,7 @@ StorkDelayedNeutron::~StorkDelayedNeutron()
 {
 }
 
-G4bool StorkDelayedNeutron::GetInitialPrecursors(G4int numPrimaries, G4bool initialPrecursors)
+G4bool StorkDelayedNeutron::GetInitialPrecursors(G4int numPrimaries)
 {
     // Local variables
     char line[256];
@@ -140,13 +141,14 @@ G4bool StorkDelayedNeutron::GetInitialPrecursors(G4int numPrimaries, G4bool init
 
 void StorkDelayedNeutron::SetFissionSource(MSHSiteVector fissionSites, DblVector fissionEnergies)
 {
+    if (!initialPrecursors)
+    {
+        fSites.clear();
+        fEnergy.clear();
 
-    fSites.clear();
-    fEnergy.clear();
-
-    fSites.insert(fSites.end(), fissionSites.begin(), fissionSites.end());
-    fEnergy.insert(fEnergy.end(), fissionEnergies.begin(), fissionEnergies.end());
-
+        fSites.insert(fSites.end(), fissionSites.begin(), fissionSites.end());
+        fEnergy.insert(fEnergy.end(), fissionEnergies.begin(), fissionEnergies.end());
+    }
     return;
 }
 

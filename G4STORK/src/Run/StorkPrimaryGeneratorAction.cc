@@ -66,12 +66,12 @@ StorkPrimaryGeneratorAction::StorkPrimaryGeneratorAction(
         if (precursorDelayed)
         {
             delayedSourceFile = infile->GetInitialDelayedFile();
-            delayedNeutronGenerator = new StorkDelayedNeutron(delayedSourceFile, runDuration, numPrimaries);
+            delayedNeutronGenerator = new StorkDelayedNeutron(delayedSourceFile, runDuration, numPrimaries,initialPrecursors);
             if (initialPrecursors)
             {
                 delayedNeutronGenerator->SetPrecursors(Precursors);
             }
-            delayedNeutronGenerator->GetInitialPrecursors(numPrimaries, initialPrecursors);
+            delayedNeutronGenerator->GetInitialPrecursors(numPrimaries);
         }
     }
 

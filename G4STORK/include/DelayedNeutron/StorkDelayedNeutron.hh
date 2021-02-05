@@ -11,7 +11,7 @@ class StorkDelayedNeutron
     //Public methods
 public:
     //Constructor
-    StorkDelayedNeutron(G4String dnFilename, G4double runDuration, G4int numPrimaries);
+    StorkDelayedNeutron(G4String dnFilename, G4double runDuration, G4int numPrimaries, G4bool initialPrecursors);
 
     //Destructor
     virtual ~StorkDelayedNeutron();
@@ -30,7 +30,7 @@ public:
     void SetFissionSource(MSHSiteVector fissionSites, DblVector fissionEnergies);
 
     // Produce initial precursor groups
-    G4bool GetInitialPrecursors(G4int numPrimaries, G4bool initialPrecursors);
+    G4bool GetInitialPrecursors(G4int numPrimaries);
 
     //Private methods
 private:
@@ -48,6 +48,8 @@ private:
     std::vector<G4int> Precursors;
 
     G4ParticleDefinition *neutron;
+
+    G4bool initialPrecursors;
 
     //Run duration
     G4double runDuration;
